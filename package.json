@@ -1,8 +1,12 @@
 {
   "name": "webpack-image-minimizer-plugin",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "type": "module",
-  "description": "The plugin for almost lossless compression of images.",
+  "description": "The Webpack plugin for almost quality-lossless compression of images.",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/easyreactuse/webpack-image-minimizer-plugin"
+  },
   "main": "dist/index.js",
   "types": "dist/types",
   "exports": {

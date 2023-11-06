@@ -32,7 +32,7 @@ module.exports = {
 ## Customizition
 
 WebpackImageMinimizerPlugin Constructor accept following options:
-```json
+```js
 {
   // Set if cache file in node_modules/.cache/webpack-image-compress-plugin
   // so if the asset is not modified, it will use the cached compressed image file.
@@ -40,7 +40,7 @@ WebpackImageMinimizerPlugin Constructor accept following options:
   // an array of command line options for the pngquant binary 
   pngQuantOptions: ['128']
   // build log.
-  showDetailLog?: boolean = true;
+  showDetailLog: true;
 }
 ```
 This plugin based on  [node-pngquant](https://github.com/papandreou/node-pngquant), view that for more 
