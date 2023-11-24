@@ -1,6 +1,5 @@
 import typescript from '@rollup/plugin-typescript'
 import { defineConfig } from 'rollup'
-
 const publicConfig = {
   format: 'esm'
 }
@@ -29,8 +28,8 @@ const config = defineConfig([
     },
     plugins: [
       typescript({
-        declaration: true
-      })
+        declaration: true,
+      }),
     ]
   },
 ])

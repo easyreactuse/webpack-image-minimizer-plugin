@@ -35,13 +35,14 @@ WebpackImageMinimizerPlugin Constructor accept following options:
 ```js
 {
   // Set if cache file in node_modules/.cache/webpack-image-compress-plugin
+  // If you want use new options to compress image, you should clear that folder.
   // so if the asset is not modified, it will use the cached compressed image file.
   enableCache: true, 
-  // an array of command line options for the pngquant binary 
-  pngQuantOptions: ['128']
+  pngQuantOptions: { }, // https://github.com/imagemin/imagemin-pngquant
+  mozjpegOptions: { quality: 80 }, // https://github.com/imagemin/imagemin-mozjpeg
+  // see 
   // build log.
   showDetailLog: true;
 }
 ```
-This plugin based on  [node-pngquant](https://github.com/papandreou/node-pngquant), view that for more 
-"pngQuantOptions" rules.
+This plugin based on [image-min](https://github.com/imagemin/imagemin), [imagemin-pngquant](https://github.com/imagemin/imagemin-pngquant), [imagemin-mozjpeg](https://github.com/imagemin/imagemin-mozjpeg). For more customization, please refer to them.

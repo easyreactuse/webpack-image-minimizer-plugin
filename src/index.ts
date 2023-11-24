@@ -5,7 +5,9 @@ import fs from 'fs';
 import { Readable, Stream } from 'stream';
 import path from 'path';
 import colors from 'colors';
-
+import type { Plugin } from "imagemin";
+import type { Options as PngQuantOptions } from "imagemin-pngquant";
+import type { Options as MozjpegOptions } from "imagemin-mozjpeg";
 colors.enable();
 function listFilesInFolder(folderPath: string) {
   if (!fs.existsSync(folderPath)) {
@@ -22,13 +24,20 @@ function listFilesInFolder(folderPath: string) {
 }
 class WebpackImageMinimizerPlugin {
   enableCache?: boolean = true;
-  pngQuantOptions?: string[] = ['128']
+  pngQuantOptions?: PngQuantOptions = {}
+  mozjpegOptions?: MozjpegOptions = { quality: 80 }
   showDetailLog?: boolean = true;
-  constructor(options: { enableCache?: boolean, pngQuantOptions?: string[], showDetailLog?: boolean }) {
-    const { enableCache, pngQuantOptions, showDetailLog } = options || {};
+  constructor(options: {
+    enableCache?: boolean,
+    pngQuantOptions?: PngQuantOptions,
+    mozjpegOptions?: MozjpegOptions,
+    showDetailLog?: boolean
+  }) {
+    const { enableCache, pngQuantOptions, showDetailLog, mozjpegOptions } = options || {};
     this.enableCache = enableCache === undefined ? this.enableCache : !!enableCache;
     this.showDetailLog = showDetailLog === undefined ? this.showDetailLog : !!showDetailLog;
-    this.pngQuantOptions = pngQuantOptions || this.pngQuantOptions;
+    this.pngQuantOptions = { ...this.pngQuantOptions, ...pngQuantOptions };
+    this.mozjpegOptions = { ...this.mozjpegOptions, ...mozjpegOptions };
   }
   apply(compiler: webpack.Compiler) {
     const { RawSource } = webpack.sources;
@@ -58,34 +67,30 @@ class WebpackImageMinimizerPlugin {
                   assets[key] = new RawSource(cacheBuffer);
                   this.showDetailLog && console.log(
                     '[webpack-image-minimizer-plugin]:'.blue,
-                  `"${key}" use cached compressed file:`.yellow,
-                   `${(source as Buffer).byteLength}(Bytes) -> ${(cacheBuffer as Buffer).byteLength}(Bytes)`.green);
+                    `"${key}" use cached compressed file:`.yellow,
+                    `${(source as Buffer).byteLength}(Bytes) -> ${(cacheBuffer as Buffer).byteLength}(Bytes)`.green);
                   continue;
                 }
               }
-              const pngQuant = new PngQuant(this.pngQuantOptions);
-              const readableStream = Readable.from(source);
-              // @ts-ignore
-              readableStream.pipe(pngQuant);
-              const chunks: any[] = [];
-              await new Promise((resolve) => {
-                pngQuant
-                  .on('data', (chunk) => {
-                    chunks.push(chunk);
-                  })
-                  .on('end', () => {
-                    const resultPngBuffer = Buffer.concat(chunks);
-                    assets[key] = new RawSource(resultPngBuffer);
-                    if (this.enableCache) {
-                      fs.writeFileSync(path.resolve(cache_folder, fileName), resultPngBuffer);
-                    }
-                    this.showDetailLog && console.log(
-                      '[webpack-image-minimizer-plugin]:'.blue,
-                      `"${key}" compressed:`.yellow,
-                       `${(source as Buffer).byteLength}(Bytes) -> ${resultPngBuffer.byteLength}(Bytes)`.green);
-                    resolve(null);
-                  });
-              })
+              const imagemin = (await import('imagemin')).default;
+              const imageminMozjpeg = (await import("imagemin-mozjpeg")).default;
+              const imageminPngquant = (await import("imagemin-pngquant")).default;
+              const plugins: Plugin[] = [];
+              if (/\.jp?g$/i.test(key)) {
+                plugins.push(imageminMozjpeg(this.mozjpegOptions))
+              }
+              if (/.png/i.test(key)) {
+                plugins.push(imageminPngquant(this.pngQuantOptions))
+              }
+              const resultPngBuffer = await imagemin.buffer(assets[key].buffer(), { plugins });
+              assets[key] = new RawSource(resultPngBuffer);
+              if (this.enableCache) {
+                fs.writeFileSync(path.resolve(cache_folder, fileName), resultPngBuffer);
+              }
+              this.showDetailLog && console.log(
+                '[webpack-image-minimizer-plugin]:'.blue,
+                `"${key}" compressed:`.yellow,
+                `${(source as Buffer).byteLength}(Bytes) -> ${resultPngBuffer.byteLength}(Bytes)`.green);
             }
           }
         });
