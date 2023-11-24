@@ -1,6 +1,6 @@
 {
   "name": "webpack-image-minimizer-plugin",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "type": "module",
   "description": "The Webpack plugin for almost quality-lossless compression of images.",
   "repository": {
